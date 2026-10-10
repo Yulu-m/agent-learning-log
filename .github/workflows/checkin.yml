@@ -4,7 +4,7 @@ on:
     types: [opened, edited, closed, reopened, deleted]
   workflow_dispatch:
   push:
-    paths: ["scripts/**", ".github/workflows/checkin.yml"]
+    paths: ["scripts/**", "tests/**", ".github/workflows/checkin.yml", ".github/ISSUE_TEMPLATE/checkin.yml"]
 permissions:
   contents: write
   issues: read
@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -31,5 +33,6 @@ jobs:
           git add README.md records views .github/ISSUE_TEMPLATE/checkin.yml
           if ! git diff --cached --quiet; then
             git commit -m "更新 Agent 学习打卡视图"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi

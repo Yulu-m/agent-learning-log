@@ -1,5 +1,8 @@
 {
   "number": 1,
+  "test": true,
+  "category": "其他",
+  "mastery": "未评估",
   "url": "https://github.com/Yulu-m/agent-learning-log/issues/1",
   "date": "2026-10-11",
   "minutes": 0,

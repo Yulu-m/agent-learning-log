@@ -5,13 +5,14 @@ import html
 import json
 import os
 import re
+import sys
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-LABELS = ['学习日期', '学习主题', '学习时长（分钟）', '今天学了什么', '实践与产出', '问题与收获', '下一步', '今日拾光']
+LABELS = ['学习日期', '学习主题', '学习时长（分钟）', '今天学了什么', '实践与产出', '问题与收获', '下一步', '今日拾光', '今天完成了什么', '掌握程度', '学习方向', '记录类型']
 TZ = timezone(timedelta(hours=8))
 
 
@@ -31,15 +32,17 @@ def parse_issue(issue):
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', day):
         raise ValueError('学习日期应为 YYYY-MM-DD')
     date.fromisoformat(day)
-    minutes = fields.get(LABELS[2], '')
+    minutes = fields.get(LABELS[2], '') or '0'
     if not re.fullmatch(r'\d{1,4}', minutes) or not 0 <= int(minutes) <= 1440:
         raise ValueError('学习时长应为 0—1440 的整数分钟')
-    if not fields.get(LABELS[1]) or not fields.get(LABELS[3]):
-        raise ValueError('请填写学习主题和今天学了什么')
+    if not fields.get(LABELS[3]):
+        raise ValueError('请填写今天学了什么')
     return dict(number=issue['number'], url=issue['html_url'], date=day,
-                minutes=int(minutes), topic=fields[LABELS[1]],
-                learned=fields[LABELS[3]], practice=fields.get(LABELS[4], ''),
-                questions=fields.get(LABELS[5], ''), next=fields.get(LABELS[6], ''), moments=fields.get(LABELS[7], ''))
+                minutes=int(minutes), topic=fields.get(LABELS[1]) or '学习记录',
+                learned=fields[LABELS[3]], practice=fields.get('今天完成了什么') or fields.get(LABELS[4], ''),
+                questions=fields.get(LABELS[5], ''), next=fields.get(LABELS[6], ''), moments=fields.get(LABELS[7], ''),
+                mastery=fields.get('掌握程度') or '未评估', category=fields.get('学习方向') or '其他',
+                test=fields.get('记录类型') == '测试记录（不计入统计和正式邮件）' or bool(re.match(r'^\[打卡\]\s*测试打卡', issue.get('title', ''))))
 
 
 def sync(root, repo):
@@ -85,6 +88,8 @@ def totals(records):
 
 def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=None):
     today = today or datetime.now(TZ).date()
+    all_records = records
+    records = [r for r in records if not r.get('test', False)]
     view = root / 'views'
     view.mkdir(exist_ok=True)
     days = defaultdict(list)
@@ -114,6 +119,7 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
             detail += f"\n## {safe(r['topic'])}\n\n学习时长：{r['minutes']} 分钟 · [编辑原始打卡]({r['url']})\n"
             for label, key in zip(LABELS[3:], ['learned', 'practice', 'questions', 'next', 'moments']):
                 detail += f"\n### {label}\n\n{safe(r.get(key, '')) or '未填写'}\n"
+            detail += f"\n### 掌握程度（自评）\n\n{safe(r.get('mastery', '未评估'))}\n"
         write(f'days/{day}.md', detail)
     if not days:
         daily += '\n还没有打卡。点击首页的「开始打卡」记录第一天。\n'
@@ -125,6 +131,7 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
         start = date.fromisocalendar(year, w, 1)
         count, minutes = totals(rs)
         weekly += f'\n## {week}（{start} — {start + timedelta(days=6)}）\n\n学习 {count} 天 · {minutes} 分钟\n\n'
+        weekly += f'[查看本周复盘](summaries/week-{week}.md)\n\n'
         for day in sorted({r['date'] for r in rs}):
             weekly += f"- [{day}](days/{day}.md)：{' / '.join(safe(r['topic']) for r in rs if r['date'] == day)}\n"
     if not weeks:
@@ -143,6 +150,8 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
                 key = f'{month}-{n:02}'
                 cells.append(f"[**{n}**](days/{key}.md)<br>({sum(r['minutes'] for r in days[key])})" if n and key in days else (str(n) if n else ' '))
             monthly += '| ' + ' | '.join(cells) + ' |\n'
+        if rs:
+            monthly += f'\n[查看本月复盘](summaries/month-{month}.md)\n'
     monthly += '\n[填写月复盘模板](../templates/月复盘.md)\n'
     write('monthly.md', monthly)
     write('errors.md', '# 待修正的打卡\n\n' + ('\n'.join(errors) if errors else '所有打卡格式正常。'))
@@ -153,15 +162,19 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 
 **[✍️ 开始打卡](https://github.com/{repo}/issues/new?template=checkin.yml)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
 
+[学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md) · [测试记录](views/testing.md)
+
 累计学习 **{count} 天** · **{len(records)} 次打卡** · **{minutes} 分钟**
 
 ## 怎么用
 
-1. 点击「开始打卡」，填学习主题、时长和今天学了什么，提交 Issue。
+1. 点击「开始打卡」，记录今天学了什么、做出了什么、下一步。只有学习内容必填，其余选填。
 2. 稍等 GitHub Actions 完成，刷新页面即可查看日、周、月视图。
 3. 补打卡时填写日期；修改记录时编辑原 Issue，视图会重新汇总。
 
 日期默认使用提交当天的北京时间。每天可以打卡多次，学习天数按日期去重，时长累加。关闭 Issue 会保留记录；删除 Issue 或移除标题中的 `[打卡]` 前缀会从视图移除。
+
+填写「学习方向」便于查看主题分布；「掌握程度」为个人自评。选择「测试记录」不会计入学习统计、生活视图或正式邮件。历史的「测试打卡」也会自动隔离。
 
 ## 三种视图
 
@@ -175,7 +188,13 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 
 查看 [待修正的打卡](views/errors.md) 和 [Actions 运行结果](https://github.com/{repo}/actions)。日期应为 `YYYY-MM-DD`，时长应为 `0—1440` 的整数分钟。首次使用请确认仓库 Actions 已启用。也可以在「更新学习视图」工作流中点击 Run workflow 手动重建。
 
-只统计仓库所有者本人以 `[打卡]` 开头的 Issues，不会加入示例或虚构记录。原始记录保存在 Issues，汇总数据保存在 `records/`。请勿在打卡中填写 API 密钥或密码。
+只统计仓库所有者本人以 `[打卡]` 开头的正式 Issues。原始记录保存在 Issues，汇总数据保存在 `records/`。仓库公开时，记录也公开；请勿填写 API 密钥或密码。
+
+## 邮件与复盘
+
+北京时间每日 10:00 发送昨天记录，并提醒今天的下一步；周一 10:00 发送完整上周复盘；每月 1 日 10:00 发送完整上月复盘。周月总结结合成果、自评变化、待复查问题和下一阶段最多三项行动，建议与已完成事实分开。
+
+邮件在 GitHub Actions 运行，配置说明见 [邮件设置](docs/email-setup.md)。未配置发件凭据时只生成预览，不发送。GitHub 调度可能延迟，不能保证整点送达。发送日志不包含密码或邮箱地址，支持手动重试及报告去重。
 '''
     (root / 'README.md').write_text(readme, encoding='utf-8')
     form = root / '.github/ISSUE_TEMPLATE/checkin.yml'
@@ -193,6 +212,9 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
         date_field += ''.join(f'        - "{today - timedelta(days=n)}"\n' for n in range(31))
         source = re.sub(r'  - type: (?:input|dropdown)\n    id: date\n.*?(?=  - type: input\n    id: topic)', lambda _: date_field, source, flags=re.S)
         form.write_text(source, encoding='utf-8')
+    sys.path.insert(0, str(Path(__file__).parent))
+    from insights import build_insights
+    build_insights(root, all_records, repo, today)
 
 
 if __name__ == '__main__':

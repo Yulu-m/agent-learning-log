@@ -47,14 +47,14 @@ body:
       label: 学习主题
       placeholder: 例如：工具调用与 MCP
     validations:
-      required: true
+      required: false
   - type: input
     id: minutes
     attributes:
       label: 学习时长（分钟）
       placeholder: "60"
     validations:
-      required: true
+      required: false
   - type: textarea
     id: learned
     attributes:
@@ -65,7 +65,7 @@ body:
   - type: textarea
     id: practice
     attributes:
-      label: 实践与产出
+      label: 今天完成了什么
       placeholder: 做了什么？附项目链接或截图。
   - type: textarea
     id: questions
@@ -75,6 +75,40 @@ body:
     id: next
     attributes:
       label: 下一步
+      placeholder: 明天可以直接开始的一件小事
+  - type: dropdown
+    id: category
+    attributes:
+      label: 学习方向
+      default: 0
+      options:
+        - 其他
+        - Agent 基础
+        - 工具调用与 MCP
+        - RAG 与知识库
+        - 工作流与多智能体
+        - 评估与可靠性
+        - 项目实践
+  - type: dropdown
+    id: mastery
+    attributes:
+      label: 掌握程度
+      description: 个人自评，用于观察自己的变化
+      default: 0
+      options:
+        - 未评估
+        - 1 · 初步了解
+        - 2 · 能跟着做
+        - 3 · 能独立实践
+        - 4 · 能解释并迁移
+  - type: dropdown
+    id: record_type
+    attributes:
+      label: 记录类型
+      default: 0
+      options:
+        - 正式学习记录
+        - 测试记录（不计入统计和正式邮件）
   - type: textarea
     id: moments
     attributes:
