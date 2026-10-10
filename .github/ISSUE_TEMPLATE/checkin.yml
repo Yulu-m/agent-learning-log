@@ -75,3 +75,9 @@ body:
     id: next
     attributes:
       label: 下一步
+  - type: textarea
+    id: moments
+    attributes:
+      label: 今日拾光
+      description: 选填，留下一点学习之外的生活。
+      placeholder: 今天的趣事、心情、偶遇，或任何想记住的小事。
