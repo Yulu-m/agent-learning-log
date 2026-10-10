@@ -1,0 +1,35 @@
+name: 更新学习视图
+on:
+  issues:
+    types: [opened, edited, closed, reopened, deleted]
+  workflow_dispatch:
+  push:
+    paths: ["scripts/**", ".github/workflows/checkin.yml"]
+permissions:
+  contents: write
+  issues: read
+concurrency:
+  group: learning-views
+  cancel-in-progress: false
+jobs:
+  update:
+    if: github.event_name != 'issues' || github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/build.py --sync
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: 保存视图
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md records views
+          if ! git diff --cached --quiet; then
+            git commit -m "更新 Agent 学习打卡视图"
+            git push
+          fi
