@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-LABELS = ['学习日期', '学习主题', '学习时长（分钟）', '今天学了什么', '实践与产出', '问题与收获', '下一步']
+LABELS = ['学习日期', '学习主题', '学习时长（分钟）', '今天学了什么', '实践与产出', '问题与收获', '下一步', '今日拾光']
 TZ = timezone(timedelta(hours=8))
 
 
@@ -39,7 +39,7 @@ def parse_issue(issue):
     return dict(number=issue['number'], url=issue['html_url'], date=day,
                 minutes=int(minutes), topic=fields[LABELS[1]],
                 learned=fields[LABELS[3]], practice=fields.get(LABELS[4], ''),
-                questions=fields.get(LABELS[5], ''), next=fields.get(LABELS[6], ''))
+                questions=fields.get(LABELS[5], ''), next=fields.get(LABELS[6], ''), moments=fields.get(LABELS[7], ''))
 
 
 def sync(root, repo):
@@ -112,8 +112,8 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
         detail = f'# {day} 学习记录\n\n[返回日视图](../daily.md)\n'
         for r in rs:
             detail += f"\n## {safe(r['topic'])}\n\n学习时长：{r['minutes']} 分钟 · [编辑原始打卡]({r['url']})\n"
-            for label, key in zip(LABELS[3:], ['learned', 'practice', 'questions', 'next']):
-                detail += f"\n### {label}\n\n{safe(r[key]) or '未填写'}\n"
+            for label, key in zip(LABELS[3:], ['learned', 'practice', 'questions', 'next', 'moments']):
+                detail += f"\n### {label}\n\n{safe(r.get(key, '')) or '未填写'}\n"
         write(f'days/{day}.md', detail)
     if not days:
         daily += '\n还没有打卡。点击首页的「开始打卡」记录第一天。\n'
