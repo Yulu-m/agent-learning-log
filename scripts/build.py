@@ -26,7 +26,8 @@ def parse_issue(issue):
             raise ValueError('表单字段重复：' + key)
         value = body[match.end():matches[i+1].start() if i+1 < len(matches) else len(body)].strip()
         fields[key] = '' if value == '_No response_' else value
-    day = fields.get(LABELS[0]) or datetime.fromisoformat(issue['created_at'].replace('Z', '+00:00')).astimezone(TZ).date().isoformat()
+    selected = fields.get(LABELS[0], '')
+    day = ('' if selected == '提交当天（北京时间）' else selected) or datetime.fromisoformat(issue['created_at'].replace('Z', '+00:00')).astimezone(TZ).date().isoformat()
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', day):
         raise ValueError('学习日期应为 YYYY-MM-DD')
     date.fromisoformat(day)
@@ -177,6 +178,21 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 只统计仓库所有者本人以 `[打卡]` 开头的 Issues，不会加入示例或虚构记录。原始记录保存在 Issues，汇总数据保存在 `records/`。请勿在打卡中填写 API 密钥或密码。
 '''
     (root / 'README.md').write_text(readme, encoding='utf-8')
+    form = root / '.github/ISSUE_TEMPLATE/checkin.yml'
+    if form.exists():
+        source = form.read_text(encoding='utf-8')
+        date_field = '''  - type: dropdown
+    id: date
+    attributes:
+      label: 学习日期
+      description: 选择提交当天或具体日期；日期列表在每次打卡汇总时刷新。更早日期可在提交后编辑 Issue 的学习日期。
+      default: 0
+      options:
+        - 提交当天（北京时间）
+'''
+        date_field += ''.join(f'        - "{today - timedelta(days=n)}"\n' for n in range(31))
+        source = re.sub(r'  - type: (?:input|dropdown)\n    id: date\n.*?(?=  - type: input\n    id: topic)', lambda _: date_field, source, flags=re.S)
+        form.write_text(source, encoding='utf-8')
 
 
 if __name__ == '__main__':
