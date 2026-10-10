@@ -4,7 +4,7 @@
 
 **[✍️ 开始打卡](https://github.com/Yulu-m/agent-learning-log/issues/new?template=checkin.yml)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
 
-累计学习 **0 天** · **0 次打卡** · **0 分钟**
+累计学习 **1 天** · **1 次打卡** · **0 分钟**
 
 ## 怎么用
 
