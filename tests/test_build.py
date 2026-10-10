@@ -16,6 +16,7 @@ class CheckinTests(unittest.TestCase):
 
     def test_beijing_default(self):
         self.assertEqual(module.parse_issue(self.issue())['date'], '2026-10-10')
+        self.assertEqual(module.parse_issue(self.issue('提交当天（北京时间）'))['date'], '2026-10-10')
 
     def test_invalid_input(self):
         for d, m in [('2026-02-30', '60'), ('26-1-2', '60'), ('2026-10-10', '-1'), ('2026-10-10', '1441'), ('2026-10-10', '1; echo secret')]:
