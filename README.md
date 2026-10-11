@@ -4,20 +4,9 @@
 
 **[✍️ 开始打卡](https://agent-journal-yulu.wavyjam9.chatgpt.site)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
 
-[学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md)
+[AI 笔记库](views/ai-notes.md) · [学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md)
 
 累计学习 **1 天** · **1 次打卡** · **0 分钟**
-
-## 最近学习与笔记
-
-### 2026-10-11 · 规划、任务分解、多智能体协作
-
-[完整记录](views/days/2026-10-11.md) · [编辑打卡](https://github.com/Yulu-m/agent-learning-log/issues/2)
-
-**学习内容**
-
-1.agent对未来会做的事情的一种明确自然语言表示,随机应变<br>2.反馈，对环境的反馈，进行反思，重规划
-
 
 ## 怎么用
 
