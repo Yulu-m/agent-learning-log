@@ -37,7 +37,6 @@
 北京时间每日 10:00 发送昨天记录，并提醒今天的下一步；周一 10:00 发送完整上周复盘；每月 1 日 10:00 发送完整上月复盘。周月总结结合成果、自评变化、待复查问题和下一阶段最多三项行动，建议与已完成事实分开。
 
 邮件在 GitHub Actions 运行，配置说明见 [邮件设置](docs/email-setup.md)。未配置发件凭据时只生成预览，不发送。GitHub 调度可能延迟，不能保证整点送达。发送日志不包含密码或邮箱地址，支持手动重试及报告去重。
-
 <details>
 <summary>设置与维护</summary>
 
@@ -46,3 +45,4 @@
 **维护工具**：[测试记录](views/testing.md) · [待修正的打卡](views/errors.md) · [运行日志](https://github.com/Yulu-m/agent-learning-log/actions)
 
 </details>
+
