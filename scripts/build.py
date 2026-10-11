@@ -159,29 +159,33 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
     write('monthly.md', monthly)
     write('errors.md', '# 待修正的打卡\n\n' + ('\n'.join(errors) if errors else '所有打卡格式正常。'))
     count, minutes = totals(records)
-    recent = sorted(records, key=lambda r: (r['date'], r['number']), reverse=True)[:3]
-    latest_notes = '## 最近学习与笔记\n\n'
-    if not recent:
-        latest_notes += '暂无正式学习记录。提交打卡后会在这里展示。\n\n'
-    for r in recent:
-        latest_notes += f"### {r['date']} · {safe(r['topic'])}\n\n"
-        latest_notes += f"[完整记录](views/days/{r['date']}.md) · [编辑打卡]({r['url']})\n\n"
-        latest_notes += f"**学习内容**\n\n{safe(r['learned'][:800])}\n\n"
-        if len(r['learned']) > 800:
-            latest_notes += '其余内容请查看完整记录。\n\n'
-        if r.get('ai_note'):
-            latest_notes += f"<details>\n<summary>AI 学习笔记 · 参考资料</summary>\n\n{safe(r['ai_note'])}\n\n</details>\n\n"
+    notes_dir = root / 'notes'
+    notes_dir.mkdir(exist_ok=True)
+    note_index = '# AI 笔记库\n\n[返回主页](../README.md)\n\nAI 整理的参考资料独立保存，不代表已掌握或完成实践。\n\n'
+    note_records = sorted((r for r in records if r.get('ai_note')), key=lambda r: (r['date'], r['number']), reverse=True)
+    for old in notes_dir.glob('*.md'):
+        if re.fullmatch(r'\\d{4}-\\d{2}-\\d{2}-issue-\\d+', old.stem):
+            old.unlink()
+    for r in note_records:
+        filename = f"{r['date']}-issue-{r['number']}.md"
+        content = f"# {safe(r['topic'])}\n\n日期：{r['date']} · AI 整理参考资料\n\n[返回笔记库](../views/ai-notes.md) · [关联打卡]({r['url']})\n\n"
+        content += f"关键词：{safe(r.get('keywords', '')) or '未填写'}\n\n---\n\n"
+        content += html.escape(r['ai_note']) + '\n'
+        (notes_dir / filename).write_text(content, encoding='utf-8')
+        note_index += f"- {r['date']} · [{safe(r['topic'])}](../notes/{filename})\n"
+    if not note_records:
+        note_index += '暂无已提交的 AI 笔记。页面中生成、保存的笔记在打卡提交成功后归档到这里。\n'
+    write('ai-notes.md', note_index)
     readme = f'''# Agent 学习打卡
 
 每天记录一点，积累自己的 Agent 学习轨迹。
 
 **[✍️ 开始打卡](https://agent-journal-yulu.wavyjam9.chatgpt.site)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
 
-[学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md)
+[AI 笔记库](views/ai-notes.md) · [学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md)
 
 累计学习 **{count} 天** · **{len(records)} 次打卡** · **{minutes} 分钟**
 
-{latest_notes}
 ## 怎么用
 
 1. 点击「开始打卡」进入专门页面，随时补充并保存草稿；完成后提交，在 GitHub 确认创建 Issue，再回页面检查结果。只有学习内容必填，其余选填。
