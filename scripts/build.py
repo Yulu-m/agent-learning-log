@@ -46,6 +46,20 @@ def parse_issue(issue):
                 test=fields.get('记录类型') == '测试记录（不计入统计和正式邮件）' or bool(re.match(r'^\[打卡\]\s*测试打卡', issue.get('title', ''))))
 
 
+def parse_note(issue):
+    body = issue.get('body') or ''
+    labels = '|'.join(map(re.escape, LABELS))
+    pattern = '^### (' + labels + ')' + r'\s*' + chr(36)
+    matches = list(re.finditer(pattern, body, re.M))
+    fields = {m.group(1): body[m.end():matches[n+1].start() if n+1 < len(matches) else len(body)].strip() for n, m in enumerate(matches)}
+    day = fields.get('学习日期') or datetime.fromisoformat(issue['created_at'].replace('Z', '+00:00')).astimezone(TZ).date().isoformat()
+    date.fromisoformat(day)
+    note = fields.get('AI 学习笔记（参考资料）', '')
+    if not note or note == '_No response_':
+        raise ValueError('请填写 AI 笔记正文')
+    return dict(number=issue['number'], url=issue['html_url'], date=day, topic=fields.get('学习主题') or 'AI 学习笔记', keywords=fields.get('学习关键词', '').replace('_No response_', ''), ai_note=note)
+
+
 def sync(root, repo):
     owner = repo.split('/')[0]
     issues = []
@@ -60,8 +74,14 @@ def sync(root, repo):
         if len(batch) < 100:
             break
         page += 1
-    records, errors = [], []
+    records, errors, standalone_notes = [], [], []
     for issue in issues:
+        if 'pull_request' not in issue and issue['user']['login'].lower() == owner.lower() and issue['title'].startswith('[笔记]'):
+            try:
+                standalone_notes.append(parse_note(issue))
+            except (ValueError, KeyError):
+                pass
+            continue
         if 'pull_request' in issue or issue['user']['login'].lower() != owner.lower() or not issue['title'].startswith('[打卡]'):
             continue
         try:
@@ -76,6 +96,13 @@ def sync(root, repo):
             old.unlink()
     for record in records:
         (folder / f"{record['number']}.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    note_folder = root / 'note-records'
+    note_folder.mkdir(exist_ok=True)
+    for old in note_folder.glob('*.json'):
+        if old.stem.isdigit():
+            old.unlink()
+    for note in standalone_notes:
+        (note_folder / f"{note['number']}.json").write_text(json.dumps(note, ensure_ascii=False, indent=2), encoding='utf-8')
     return records, errors
 
 
@@ -162,7 +189,8 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
     notes_dir = root / 'notes'
     notes_dir.mkdir(exist_ok=True)
     note_index = '# AI 笔记库\n\n[返回主页](../README.md)\n\nAI 整理的参考资料独立保存，不代表已掌握或完成实践。\n\n'
-    note_records = sorted((r for r in records if r.get('ai_note')), key=lambda r: (r['date'], r['number']), reverse=True)
+    standalone = [json.loads(p.read_text(encoding='utf-8')) for p in (root / 'note-records').glob('*.json')]
+    note_records = sorted([r for r in records if r.get('ai_note')] + standalone, key=lambda r: (r['date'], r['number']), reverse=True)
     for old in notes_dir.glob('*.md'):
         if re.fullmatch(r'\\d{4}-\\d{2}-\\d{2}-issue-\\d+', old.stem):
             old.unlink()
