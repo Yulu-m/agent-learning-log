@@ -6,7 +6,7 @@
 
 [学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md)
 
-累计学习 **0 天** · **0 次打卡** · **0 分钟**
+累计学习 **1 天** · **1 次打卡** · **0 分钟**
 
 ## 怎么用
 
