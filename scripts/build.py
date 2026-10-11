@@ -159,6 +159,18 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
     write('monthly.md', monthly)
     write('errors.md', '# 待修正的打卡\n\n' + ('\n'.join(errors) if errors else '所有打卡格式正常。'))
     count, minutes = totals(records)
+    recent = sorted(records, key=lambda r: (r['date'], r['number']), reverse=True)[:3]
+    latest_notes = '## 最近学习与笔记\n\n'
+    if not recent:
+        latest_notes += '暂无正式学习记录。提交打卡后会在这里展示。\n\n'
+    for r in recent:
+        latest_notes += f"### {r['date']} · {safe(r['topic'])}\n\n"
+        latest_notes += f"[完整记录](views/days/{r['date']}.md) · [编辑打卡]({r['url']})\n\n"
+        latest_notes += f"**学习内容**\n\n{safe(r['learned'][:800])}\n\n"
+        if len(r['learned']) > 800:
+            latest_notes += '其余内容请查看完整记录。\n\n'
+        if r.get('ai_note'):
+            latest_notes += f"<details>\n<summary>AI 学习笔记 · 参考资料</summary>\n\n{safe(r['ai_note'])}\n\n</details>\n\n"
     readme = f'''# Agent 学习打卡
 
 每天记录一点，积累自己的 Agent 学习轨迹。
@@ -169,6 +181,7 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 
 累计学习 **{count} 天** · **{len(records)} 次打卡** · **{minutes} 分钟**
 
+{latest_notes}
 ## 怎么用
 
 1. 点击「开始打卡」进入专门页面，随时补充并保存草稿；完成后提交，在 GitHub 确认创建 Issue，再回页面检查结果。只有学习内容必填，其余选填。
