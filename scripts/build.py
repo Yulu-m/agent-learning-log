@@ -160,7 +160,7 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 
 每天记录一点，积累自己的 Agent 学习轨迹。
 
-**[✍️ 开始打卡](https://github.com/{repo}/issues/new?template=checkin.yml)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
+**[✍️ 开始打卡](https://agent-journal-yulu.wavyjam9.chatgpt.site)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
 
 [学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md)
 
@@ -168,11 +168,11 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 
 ## 怎么用
 
-1. 点击「开始打卡」，记录今天学了什么、做出了什么、下一步。只有学习内容必填，其余选填。
+1. 点击「开始打卡」进入专门页面，随时补充并保存草稿；完成后提交，在 GitHub 确认创建 Issue，再回页面检查结果。只有学习内容必填，其余选填。
 2. 稍等 GitHub Actions 完成，刷新页面即可查看日、周、月视图。
 3. 补打卡时填写日期；修改记录时编辑原 Issue，视图会重新汇总。
 
-日期默认使用提交当天的北京时间。每天可以打卡多次，学习天数按日期去重，时长累加。关闭 Issue 会保留记录；删除 Issue 或移除标题中的 `[打卡]` 前缀会从视图移除。
+专门页面的草稿仅保存在当前浏览器，支持导出、导入备份，未提交的草稿不进入统计或邮件。\n\n日期默认使用提交当天的北京时间。每天可以打卡多次，学习天数按日期去重，时长累加。关闭 Issue 会保留记录；删除 Issue 或移除标题中的 `[打卡]` 前缀会从视图移除。
 
 填写「学习方向」便于查看主题分布；「掌握程度」为个人自评。选择「测试记录」不会计入学习统计、生活视图或正式邮件。历史的「测试打卡」也会自动隔离。
 
