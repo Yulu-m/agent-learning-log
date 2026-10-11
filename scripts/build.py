@@ -162,7 +162,7 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
 
 **[✍️ 开始打卡](https://github.com/{repo}/issues/new?template=checkin.yml)** · **[📖 日视图](views/daily.md)** · **[📅 周视图](views/weekly.md)** · **[🗓️ 月视图](views/monthly.md)**
 
-[学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md) · [测试记录](views/testing.md)
+[邮件开关](https://github.com/{repo}/actions/workflows/mail-settings.yml) · [学习看板](views/dashboard.md) · [成果清单](views/achievements.md) · [周月复盘](views/summaries.md) · [今日拾光](views/moments.md) · [测试记录](views/testing.md)
 
 累计学习 **{count} 天** · **{len(records)} 次打卡** · **{minutes} 分钟**
 
