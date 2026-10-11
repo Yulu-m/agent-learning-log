@@ -30,7 +30,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md records views .github/ISSUE_TEMPLATE/checkin.yml
+          git add README.md records views notes note-records .github/ISSUE_TEMPLATE/checkin.yml
           if ! git diff --cached --quiet; then
             git commit -m "更新 Agent 学习打卡视图"
             git pull --rebase origin main
