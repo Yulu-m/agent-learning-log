@@ -190,13 +190,14 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
     notes_dir.mkdir(exist_ok=True)
     note_index = '# AI 笔记库\n\n[返回主页](../README.md)\n\nAI 整理的参考资料独立保存，不代表已掌握或完成实践。\n\n'
     standalone = [json.loads(p.read_text(encoding='utf-8')) for p in (root / 'note-records').glob('*.json')]
+    standalone += [json.loads(p.read_text(encoding='utf-8')) for p in (root / 'standalone-notes').glob('*.json')]
     note_records = sorted([r for r in records if r.get('ai_note')] + standalone, key=lambda r: (r['date'], r['number']), reverse=True)
     for old in notes_dir.glob('*.md'):
         if re.fullmatch(r'\\d{4}-\\d{2}-\\d{2}-issue-\\d+', old.stem):
             old.unlink()
     for r in note_records:
-        filename = f"{r['date']}-issue-{r['number']}.md"
-        content = f"# {safe(r['topic'])}\n\n日期：{r['date']} · AI 整理参考资料\n\n[返回笔记库](../views/ai-notes.md) · [关联打卡]({r['url']})\n\n"
+        filename = f"{r['date']}-note-{r['id']}.md" if r.get('id') else f"{r['date']}-issue-{r['number']}.md"
+        content = f"# {safe(r['topic'])}\n\n日期：{r['date']} · AI 整理参考资料\n\n[返回笔记库](../views/ai-notes.md) · [原始记录]({r.get('url') or 'https://github.com/' + repo + '/blob/main/standalone-notes/' + r.get('id', '') + '.json'})\n\n"
         content += f"关键词：{safe(r.get('keywords', '')) or '未填写'}\n\n---\n\n"
         content += html.escape(r['ai_note']) + '\n'
         (notes_dir / filename).write_text(content, encoding='utf-8')
