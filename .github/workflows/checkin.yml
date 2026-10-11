@@ -4,7 +4,7 @@ on:
     types: [opened, edited, closed, reopened, deleted]
   workflow_dispatch:
   push:
-    paths: ["scripts/**", "tests/**", ".github/workflows/checkin.yml", ".github/ISSUE_TEMPLATE/checkin.yml"]
+    paths: ["standalone-notes/**", "scripts/**", "tests/**", ".github/workflows/checkin.yml", ".github/ISSUE_TEMPLATE/checkin.yml"]
 permissions:
   contents: write
   issues: read
