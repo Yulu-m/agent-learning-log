@@ -1,0 +1,67 @@
+name: 邮件发送开关
+on:
+  workflow_dispatch:
+    inputs:
+      daily:
+        description: 日报邮件
+        type: choice
+        default: 保持现状
+        options: [保持现状, 开启, 关闭]
+      weekly:
+        description: 周报邮件
+        type: choice
+        default: 保持现状
+        options: [保持现状, 开启, 关闭]
+      monthly:
+        description: 月报邮件
+        type: choice
+        default: 保持现状
+        options: [保持现状, 开启, 关闭]
+permissions:
+  contents: write
+concurrency:
+  group: learning-views
+  cancel-in-progress: false
+jobs:
+  settings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 修改邮件开关
+        env:
+          DAILY: ${{ inputs.daily }}
+          WEEKLY: ${{ inputs.weekly }}
+          MONTHLY: ${{ inputs.monthly }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path('config/mail-settings.json')
+          values = json.loads(path.read_text(encoding='utf-8'))
+          for key in ['daily', 'weekly', 'monthly']:
+              selected = os.environ[key.upper()]
+              if selected not in ['保持现状', '开启', '关闭']:
+                  raise ValueError('Invalid switch')
+              if selected != '保持现状':
+                  values[key] = selected == '开启'
+          path.write_text(json.dumps(values, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          summary = '| 邮件 | 状态 |\n|---|---|\n'
+          for key, label in [('daily','日报'),('weekly','周报'),('monthly','月报')]:
+              summary += f'| {label} | {"开启" if values[key] else "关闭"} |\n'
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text(summary, encoding='utf-8')
+          PY
+      - name: 保存设置
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config/mail-settings.json
+          if ! git diff --cached --quiet; then
+            git commit -m "更新日周月邮件发送开关"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

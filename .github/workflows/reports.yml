@@ -15,7 +15,7 @@ on:
         type: boolean
         default: true
   push:
-    paths: ['scripts/**', 'tests/**', '.github/workflows/reports.yml']
+    paths: ['scripts/**', 'tests/**', '.github/workflows/reports.yml', 'config/mail-settings.json']
 permissions:
   contents: write
   issues: read

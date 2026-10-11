@@ -2,6 +2,18 @@
 
 GitHub Actions 每天按北京时间 10:00 调度日报；周一同时生成完整上周周报，1 日同时生成上月月报。不需要本机开机。GitHub 高峰时可能延迟，公开仓库长期没有活动可能停用定时任务；不能保证邮件整点送达。
 
+## 日报、周报、月报独立开关
+
+打开 [邮件发送开关](https://github.com/Yulu-m/agent-learning-log/actions/workflows/mail-settings.yml) → Run workflow，在 main 分支选择：
+
+- 日报邮件：保持现状 / 开启 / 关闭
+- 周报邮件：保持现状 / 开启 / 关闭
+- 月报邮件：保持现状 / 开启 / 关闭
+
+点击 Run workflow 保存。运行 Summary 展示保存后的三项状态；长期设置保存在 [mail-settings.json](../config/mail-settings.json)，默认三项均开启。关闭某项会阻止该类定时邮件和手动正式邮件发送，也不会创建发送占用日志；学习打卡、图表和复盘照常生成。已经进入 SMTP 发送中的邮件无法撤回；重新开启不会自动补发以前关闭期间的邮件。
+
+独立测试邮件 test 不受日周月开关影响，只有手动选择 test 且取消 preview 才发送。所有设置均在 GitHub 云端生效，无需打开 Codex。
+
 ## 最后一步：配置三个 Secrets
 
 打开仓库 Settings → Secrets and variables → Actions → New repository secret：

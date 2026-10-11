@@ -145,6 +145,17 @@ def deliver(kind, start, end, text, cfg, ledger, send=smtp_send):
     return 'sent'
 
 
+def enabled_kinds(root):
+    path = root / 'config/mail-settings.json'
+    defaults = dict(daily=True, weekly=True, monthly=True)
+    if not path.exists():
+        return defaults
+    values = json.loads(path.read_text(encoding='utf-8'))
+    if set(values) != set(defaults) or any(type(v) is not bool for v in values.values()):
+        raise ValueError('Mail switches must contain daily, weekly and monthly booleans')
+    return values
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--kind', choices=['auto', 'daily', 'weekly', 'monthly', 'test'], default='auto')
@@ -158,8 +169,12 @@ def main():
     cfg = None if args.preview else config()
     out = ROOT/'mail-preview'
     out.mkdir(exist_ok=True)
+    switches = enabled_kinds(ROOT)
     failed = False
     for kind, start, end in periods(today, args.kind):
+        if kind != 'test' and not switches[kind]:
+            print(f'{kind}: disabled by mail settings; no email or delivery claim')
+            continue
         text = ('# Agent 学习测试邮件\n\n用于验证 GitHub 独立发件，不计入学习统计。\n\n' + summarize(records, 'daily', start, end)) if kind == 'test' else summarize(records, kind, start, end)
         (out / f'{report_key(kind,start,end)}.md').write_text(text, encoding='utf-8')
         if not cfg:
