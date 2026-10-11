@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-LABELS = ['学习日期', '学习主题', '学习时长（分钟）', '今天学了什么', '实践与产出', '问题与收获', '下一步', '今日拾光', '今天完成了什么', '掌握程度', '学习方向', '记录类型']
+LABELS = ['学习日期', '学习主题', '学习时长（分钟）', '今天学了什么', '实践与产出', '问题与收获', '下一步', '今日拾光', '今天完成了什么', '掌握程度', '学习方向', '记录类型', '学习关键词', 'AI 学习笔记（参考资料）']
 TZ = timezone(timedelta(hours=8))
 
 
@@ -39,6 +39,7 @@ def parse_issue(issue):
         raise ValueError('请填写今天学了什么')
     return dict(number=issue['number'], url=issue['html_url'], date=day,
                 minutes=int(minutes), topic=fields.get(LABELS[1]) or '学习记录',
+                ai_note=fields.get('AI 学习笔记（参考资料）', ''), keywords=fields.get('学习关键词', ''),
                 learned=fields[LABELS[3]], practice=fields.get('今天完成了什么') or fields.get(LABELS[4], ''),
                 questions=fields.get(LABELS[5], ''), next=fields.get(LABELS[6], ''), moments=fields.get(LABELS[7], ''),
                 mastery=fields.get('掌握程度') or '未评估', category=fields.get('学习方向') or '其他',
@@ -120,6 +121,8 @@ def build(root, records, repo='Yulu-m/agent-learning-log', today=None, errors=No
             for label, key in zip(LABELS[3:], ['learned', 'practice', 'questions', 'next', 'moments']):
                 detail += f"\n### {label}\n\n{safe(r.get(key, '')) or '未填写'}\n"
             detail += f"\n### 掌握程度（自评）\n\n{safe(r.get('mastery', '未评估'))}\n"
+            if r.get('ai_note'):
+                detail += f"\n<details>\n<summary>AI 学习笔记 · 参考资料</summary>\n\n{safe(r['ai_note'])}\n\n</details>\n"
         write(f'days/{day}.md', detail)
     if not days:
         daily += '\n还没有打卡。点击首页的「开始打卡」记录第一天。\n'
