@@ -1,5 +1,5 @@
 {
-  "daily": true,
-  "weekly": true,
-  "monthly": true
+  "daily": false,
+  "weekly": false,
+  "monthly": false
 }
